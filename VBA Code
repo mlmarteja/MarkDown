@@ -1,0 +1,139 @@
+'References:
+'The code was in referene to this github:https://github.com/apfernandes/excelToMarkdown/blob/master/excelTableToMarkDown.vb
+'Instead of printing in the debug section, I made it print in a text file
+'https://spreadsheetplanet.com/extract-url-from-hyperlinks-excel/#:~:text=Extract%20URL%20from%20Hyperlinks%20Using%20Formula.%201%20Open,a%20Module%20to%20the%20workbook%20objects.%20More%20items
+Sub MarkDown()
+Dim cell As Range
+    Dim selectedRange As Range
+    
+    'Ask the user to input the range
+    Set selectedRange = Application.InputBox("Select a range", "Obtain Range Object", Type:=8)
+    
+    Dim newFile As String
+    Dim rowCounter As Integer
+    Dim columnCounter As Integer
+    Dim totalColumns As Integer
+    Dim currentColumnWidth As Integer
+    
+
+    totalColumns = selectedRange.Columns.Count
+
+    Dim columnWidth(50) As String    'maximum of 50 columns
+    
+    newFile = Application.DefaultFilePath & "\MarkdDownText.txt"
+
+    Open newFile For Output As #1
+    
+    For i = 0 To totalColumns
+        columnWidth(i) = 0
+    Next i
+
+    For Each Row In selectedRange.Rows
+
+        columnCounter = 0
+
+        For Each cell In Row.Cells
+
+            currentColumnWidth = Len(cell.Value)
+
+            If (currentColumnWidth > columnWidth(columnCounter)) Then
+
+                columnWidth(columnCounter) = currentColumnWidth
+            End If
+
+            columnCounter = columnCounter + 1
+        Next cell
+
+    Next Row
+
+    Dim currentLine As String
+    Dim link As String
+
+    rowCounter = 0
+    For Each Row In selectedRange.Rows
+
+        columnCounter = 0
+        currentLine = "|"
+
+        For Each cell In Row.Cells
+
+            currentColumnWidth = columnWidth(columnCounter)
+            Dim extraSpaces As Integer
+
+            currentLine = currentLine & " "
+            
+            If cell.Hyperlinks.Count > 0 Then
+                On Error Resume Next
+                    link = ""
+                    link = cell.Hyperlinks(1).Address
+                On Error GoTo 0
+                
+                currentLine = currentLine & "[" & cell.Value & "]" + "(" + link + ")"
+            Else
+                currentLine = currentLine & cell.Value
+            End If
+            
+            extraSpaces = currentColumnWidth - Len(cell.Value)
+
+            For j = 0 To extraSpaces
+
+                currentLine = currentLine & " "
+
+            Next j
+
+            currentLine = currentLine & " |"
+
+            columnCounter = columnCounter + 1
+         
+        Next cell
+
+        Print #1, currentLine
+
+        If (rowCounter = 0) Then
+
+            currentLine = "|"
+            columnCounter = 0
+
+            For j = 0 To (totalColumns - 1)
+
+                currentLine = currentLine
+                currentColumnWidth = columnWidth(columnCounter)
+                currentLine = currentLine & "-"
+
+                For k = 0 To currentColumnWidth
+
+                    currentLine = currentLine & "-"
+                Next k
+
+                currentLine = currentLine & "-|"
+                columnCounter = columnCounter + 1
+
+            Next j
+            Print #1, currentLine
+        End If
+
+        rowCounter = rowCounter + 1
+
+    Next Row
+    Close #1
+End Sub
+
+Sub IgnoreColumn()
+    Dim k As Integer
+    Dim ColCount As Integer
+    
+    ColCount = ActiveSheet.UsedRange.Columns.Count
+    
+    For k = 1 To ColCount
+        If Cells(2, k).Value = "!" Then
+            Columns(k).EntireColumn.Hidden = True
+        End If
+    Next k
+
+End Sub
+
+Sub Reset()
+    Cells.EntireColumn.Hidden = False
+End Sub
+
+

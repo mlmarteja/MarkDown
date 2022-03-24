@@ -1,3 +1,7 @@
+Sub Reset()
+    Cells.EntireColumn.Hidden = False
+End Sub
+
 'If a column is blue at the top you will include the column
 Sub IgnoreBlueColumn()
     Dim k As Integer
@@ -6,21 +10,18 @@ Sub IgnoreBlueColumn()
     ColCount = ActiveSheet.UsedRange.Columns.Count
     
     For k = 1 To ColCount
-        If Cells(2, k).Interior.Color = RGB(0, 0, 255) Then
+        If Cells(2, k).Interior.ColorIndex = 41 Then
             Columns(k).EntireColumn.Hidden = True
         End If
     Next k
 
 End Sub
 
-Sub Reset()
-    Cells.EntireColumn.Hidden = False
-End Sub
 
 
 'If a cell is orange you will not include the text for that cell in your markdown table
 'If the cell is yellow you will not include the hyperlink for that cell.
-Sub MarkDown()
+Sub MarkDown2()
 Dim cell As Range
     Dim selectedRange As Range
     
@@ -38,7 +39,7 @@ Dim cell As Range
 
     Dim columnWidth(50) As String    'maximum of 50 columns
     
-    newFile = Application.DefaultFilePath & "\MarkdDownText.txt"
+    newFile = Application.DefaultFilePath & "\RedoMarkdDownText.txt"
 
     Open newFile For Output As #1
     
@@ -81,18 +82,20 @@ Dim cell As Range
             currentLine = currentLine & " "
             
 
-            If cell.Hyperlinks.Count > 0 And NOT(cell.Interior.Color = RGB(225,255,0)) Then
-                On Error Resume Next
-                    link = ""
-                    link = cell.Hyperlinks(1).Address
-                On Error GoTo 0
-                
-                currentLine = currentLine & "[" & cell.Value & "]" + "(" + link + ")"
-
-	    ElseIF cell.Interior.Color = RGB(255,102,0) Then
-                cell.Vlaue = " "
-		currentLine = currentLine & cell.Value	
-	
+            If cell.Hyperlinks.Count > 0 Then
+               If cell.Interior.ColorIndex = 6 Then
+                    currentLine = currentLine & cell.Value
+                Else
+                    On Error Resume Next
+                        link = ""
+                        link = cell.Hyperlinks(1).Address
+                    On Error GoTo 0
+                    
+                   currentLine = currentLine & "[" & cell.Value & "]" + "(" + link + ")"
+                End If
+        ElseIf cell.Interior.ColorIndex = 22 Then
+        currentLine = currentLine & " "
+    
             Else
                 currentLine = currentLine & cell.Value
 
@@ -141,4 +144,12 @@ Dim cell As Range
 
     Next Row
     Close #1
+End Sub
+
+
+Sub getColor()
+    Dim num As Integer
+    
+    num = Range("D10").Interior.ColorIndex
+    MsgBox num
 End Sub
